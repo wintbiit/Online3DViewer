@@ -134,6 +134,23 @@
     const nameKeys = ['name', 'filename', 'file_name', 'display_name', 'title'];
     const sizeKeys = ['size', 'file_size'];
 
+    function rawTrailingParam(keys) {
+      const search = window.location.search.startsWith('?') ? window.location.search.slice(1) : window.location.search;
+      for (const key of keys) {
+        const token = `${key}=`;
+        const start = search.indexOf(token);
+        if (start !== -1 && (start === 0 || search[start - 1] === '&')) {
+          const value = search.slice(start + token.length);
+          try {
+            return decodeURIComponent(value);
+          } catch {
+            return value;
+          }
+        }
+      }
+      return '';
+    }
+
     function firstParam(keys) {
       for (const key of keys) {
         const value = params.get(key);
@@ -159,7 +176,7 @@
       window.location.replace(`/website/index.html#model=${encodeURI(normalizedUrl)}`);
     }
 
-    const fileUrl = firstParam(urlKeys);
+    const fileUrl = rawTrailingParam(urlKeys) || firstParam(urlKeys);
     const fileName = firstParam(nameKeys);
     const fileSize = firstParam(sizeKeys);
 
