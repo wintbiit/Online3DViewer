@@ -99,8 +99,10 @@
       font-size: 14px;
     }
 
-    button {
+    button, .button-link {
+      display: inline-block;
       margin-top: 12px;
+      margin-right: 8px;
       padding: 9px 14px;
       border: 0;
       border-radius: 6px;
@@ -108,6 +110,7 @@
       color: #ffffff;
       font-weight: 650;
       cursor: pointer;
+      text-decoration: none;
     }
 
     pre {
@@ -145,7 +148,10 @@
     <div class="debug-grid" id="debug-grid"></div>
     <label>Fetch 结果</label>
     <pre id="fetch-debug">pending...</pre>
+    <label>打开测试</label>
     <button id="debug-open">继续打开模型</button>
+    <a class="button-link" id="debug-open-raw" target="_blank" rel="noreferrer">新窗口 raw hash</a>
+    <a class="button-link" id="debug-open-encoded" target="_blank" rel="noreferrer">新窗口 encoded hash</a>
   </div>
 
   <script>
@@ -208,6 +214,14 @@
       window.location.replace(`/website/index.html#model=${encodeURI(normalizedUrl)}`);
     }
 
+    function viewerHashRaw(url) {
+      return `/website/index.html#model=${url.trim()}`;
+    }
+
+    function viewerHashEncoded(url) {
+      return `/website/index.html#model=${encodeURI(url.trim())}`;
+    }
+
     function addDebugRow(key, value) {
       const row = document.createElement('div');
       row.className = 'debug-row';
@@ -240,7 +254,7 @@
       try {
         const response = await fetch(url, {
           method: 'GET',
-          credentials: 'include',
+          credentials: 'omit',
           redirect: 'follow'
         });
         lines.push(`status: ${response.status} ${response.statusText}`);
@@ -260,16 +274,20 @@
     }
 
     function showDebug(url, name, size) {
-      const viewerHash = `/website/index.html#model=${encodeURI(url.trim())}`;
+      const viewerHash = viewerHashEncoded(url);
+      const rawHash = viewerHashRaw(url);
       addDebugRow('location.href', window.location.href);
       addDebugRow('location.search', window.location.search);
       addDebugRow('parsed url', url);
       addDebugRow('file name', name);
       addDebugRow('file size', size);
-      addDebugRow('viewer hash', viewerHash);
+      addDebugRow('viewer hash encoded', viewerHash);
+      addDebugRow('viewer hash raw', rawHash);
       document.getElementById('debug-open').addEventListener('click', () => {
         openModel(url, name, size);
       });
+      document.getElementById('debug-open-raw').href = rawHash;
+      document.getElementById('debug-open-encoded').href = viewerHash;
       document.getElementById('debug-panel').hidden = false;
       runFetchDebug(url);
     }
