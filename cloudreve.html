@@ -211,7 +211,7 @@
 
     function openModel(url, name, size) {
       const normalizedUrl = url.trim();
-      window.location.replace(`/website/index.html#model=${encodeURI(normalizedUrl)}`);
+      window.location.replace(viewerHashRaw(normalizedUrl));
     }
 
     function viewerHashRaw(url) {
