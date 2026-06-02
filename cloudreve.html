@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cloudreve 3D 预览</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #f5f7fb;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+    }
+
+    .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #d8dee9;
+      background: #ffffff;
+    }
+
+    .title {
+      min-width: 0;
+      font-weight: 650;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .meta {
+      flex: none;
+      color: #5e6b82;
+      font-size: 13px;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #ffffff;
+    }
+
+    .fallback {
+      max-width: 760px;
+      margin: 64px auto;
+      padding: 24px;
+      border: 1px solid #d8dee9;
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 10px 28px rgba(23, 32, 51, 0.08);
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-size: 14px;
+      color: #435066;
+    }
+
+    input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #c4ccda;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 9px 14px;
+      border: 0;
+      border-radius: 6px;
+      background: #1d4ed8;
+      color: #ffffff;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 12px;
+      border-radius: 6px;
+      background: #f0f3f8;
+      color: #4a5568;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell" id="viewer-shell" hidden>
+    <div class="bar">
+      <div class="title" id="file-name">3D 模型预览</div>
+      <div class="meta" id="file-meta"></div>
+    </div>
+    <iframe id="viewer-frame" title="Online 3D Viewer"></iframe>
+  </div>
+
+  <div class="fallback" id="fallback" hidden>
+    <h1>缺少模型下载链接</h1>
+    <p>Cloudreve 需要把临时下载 URL 通过 query 参数传给这个页面。当前页面没有识别到可用的文件 URL。</p>
+    <label for="manual-url">手动测试 URL</label>
+    <input id="manual-url" type="url" placeholder="https://pan.scutbot.cn/..." autocomplete="off">
+    <button id="open-manual">打开模型</button>
+    <label>当前 query</label>
+    <pre id="query-debug"></pre>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const urlKeys = [
+      'url',
+      'file',
+      'src',
+      'source',
+      'download',
+      'download_url',
+      'downloadURL',
+      'raw',
+      'blob',
+      'preview',
+      'preview_url'
+    ];
+    const nameKeys = ['name', 'filename', 'file_name', 'display_name', 'title'];
+    const sizeKeys = ['size', 'file_size'];
+
+    function firstParam(keys) {
+      for (const key of keys) {
+        const value = params.get(key);
+        if (value && value.trim() !== '') {
+          return value;
+        }
+      }
+      return '';
+    }
+
+    function fileNameFromUrl(url) {
+      try {
+        const parsed = new URL(url);
+        const last = parsed.pathname.split('/').filter(Boolean).pop();
+        return last ? decodeURIComponent(last) : '3D 模型预览';
+      } catch {
+        return '3D 模型预览';
+      }
+    }
+
+    function openModel(url, name, size) {
+      const normalizedUrl = url.trim();
+      const displayName = name || fileNameFromUrl(normalizedUrl);
+      document.getElementById('file-name').textContent = displayName;
+      document.getElementById('file-meta').textContent = size ? `${size} bytes` : '';
+      document.getElementById('viewer-frame').src = `/website/index.html#model=${encodeURI(normalizedUrl)}`;
+      document.getElementById('viewer-shell').hidden = false;
+      document.getElementById('fallback').hidden = true;
+    }
+
+    const fileUrl = firstParam(urlKeys);
+    const fileName = firstParam(nameKeys);
+    const fileSize = firstParam(sizeKeys);
+
+    if (fileUrl) {
+      openModel(fileUrl, fileName, fileSize);
+    } else {
+      document.getElementById('query-debug').textContent = window.location.search || '(empty)';
+      document.getElementById('fallback').hidden = false;
+      document.getElementById('open-manual').addEventListener('click', () => {
+        const manualUrl = document.getElementById('manual-url').value;
+        if (manualUrl) {
+          openModel(manualUrl, '', '');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
