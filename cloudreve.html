@@ -156,12 +156,7 @@
 
     function openModel(url, name, size) {
       const normalizedUrl = url.trim();
-      const displayName = name || fileNameFromUrl(normalizedUrl);
-      document.getElementById('file-name').textContent = displayName;
-      document.getElementById('file-meta').textContent = size ? `${size} bytes` : '';
-      document.getElementById('viewer-frame').src = `/website/index.html#model=${encodeURI(normalizedUrl)}`;
-      document.getElementById('viewer-shell').hidden = false;
-      document.getElementById('fallback').hidden = true;
+      window.location.replace(`/website/index.html#model=${encodeURI(normalizedUrl)}`);
     }
 
     const fileUrl = firstParam(urlKeys);
